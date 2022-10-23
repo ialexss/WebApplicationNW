@@ -1,31 +1,63 @@
-﻿@model IEnumerable<WebApplicationNW.Models.OrderDetail>
+﻿@model PaginatedList<WebApplicationNW.Models.OrderDetail>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "OrderDetails";
 }
 
-<h1>Index</h1>
+<h1>OrderDetails</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" class="btn btn-warning">Create New</a>
 </p>
-<table class="table">
+<form class="" asp-controller="OrderDetails" asp-action="Index">
+
+    <div class="container text-center row g-3 justify-content-center">
+
+        <div class="col-auto">
+            <select class="form-select" aria-label="Default select example" name="nameColum" value="@ViewData["NameColum"]">
+                <option selected>Filter</option>
+                <option value="UnitPrice">UnitPrice</option>
+                <option value="Quantity">Quantity</option>
+                <option value="Discount">Discount</option>
+                <option value="OrderID">Order</option>
+                <option value="ProductID">Product</option>
+            </select>
+        </div>
+        <div class="col-auto">
+            <div>
+                <input type="text" name="searchString" class="form-control" value="@ViewData["CurrentFilter"]" />
+            </div>
+        </div>
+        <div class="col-auto">
+            <input type="submit" value="Search" class="btn btn-outline-primary" />
+        </div>
+
+    </div>
+
+</form>
+<br />
+
+<table class="table table-bordered table-sm">
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.UnitPrice)
+                @Html.DisplayNameFor(model => Model[0].UnitPrice)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Quantity)
+                @Html.DisplayNameFor(model => Model[0].Quantity)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Discount)
+                @Html.DisplayNameFor(model => Model[0].Discount)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Order)
+                <a asp-action="Index" asp-route-order="@ViewData["FiltroOrderID"]">
+                    @Html.DisplayNameFor(model => Model[0].Order)
+                </a>
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Product)
+                <a asp-action="Index" asp-route-order="@ViewData["FiltroProductID"]">
+                    @Html.DisplayNameFor(model => Model[0].Product)
+                </a>
             </th>
             <th></th>
         </tr>
@@ -49,11 +81,33 @@
                 @Html.DisplayFor(modelItem => item.Product.ProductId)
             </td>
             <td>
-                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
+@*                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
                 @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })*@
             </td>
         </tr>
 }
     </tbody>
 </table>
+
+@{
+    var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+    var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+}
+
+<a asp-action="Index"
+   asp-route-pageNumber="@(Model.PageIndex - 1)"
+   asp-route-currentFilter="@ViewData["CurrentFilter"]"
+   asp-route-nameColumn="@("Namecolum")"
+   asp-route-order="@ViewData["CurrentOrder"]"
+   class="btn btn-default @prevDisabled">
+    Previous
+</a>
+<a asp-action="Index"
+   asp-route-nameColum="@ViewData["NameColum"]"
+   asp-route-pageNumber="@(Model.PageIndex + 1)"
+   asp-route-currentFilter="@ViewData["CurrentFilter"]"
+   asp-route-order="@ViewData["CurrentOrder"]"
+   class="btn btn-default @nextDisabled">
+    Next
+</a>

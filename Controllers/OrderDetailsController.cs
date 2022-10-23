@@ -20,10 +20,81 @@ namespace WebApplicationNW.Controllers
         }
 
         // GET: OrderDetails
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString, string nameColum, string order, string currentFilter, int? pageNumber)
         {
-            var applicationDbContext = _context.OrderDetails.Include(o => o.Order).Include(o => o.Product);
-            return View(await applicationDbContext.ToListAsync());
+
+            if (searchString != null)
+            {
+                pageNumber = 1;
+            }
+            else
+            {
+                searchString = currentFilter;
+            }
+
+            ViewData["CurrentFilter"] = searchString;
+            ViewData["NameColum"] = nameColum;
+            ViewData["CurrentOrder"] = order;
+
+
+            var orderDetail = from m in _context.OrderDetails
+                              select m;
+
+            orderDetail = _context.OrderDetails.Include(o => o.Order).Include(o => o.Product);
+
+            if (!String.IsNullOrEmpty(nameColum) && !String.IsNullOrEmpty(searchString))
+            {
+
+                if (nameColum == "UnitPrice")
+                {
+                    orderDetail = orderDetail.Where(s => s.UnitPrice.ToString()!.Contains(searchString));
+                }
+                else if (nameColum == "Quantity")
+                {
+                    orderDetail = orderDetail.Where(s => s.Quantity.ToString()!.Contains(searchString));
+                }
+                else if (nameColum == "Discount")
+                {
+                    orderDetail = orderDetail.Where(s => s.Discount.ToString()!.Contains(searchString));
+                }
+                else if (nameColum == "OrderId")
+                {
+                    orderDetail = orderDetail.Where(s => s.OrderId.ToString()!.Contains(searchString));
+                }
+                else if (nameColum == "ProductId")
+                {
+                    orderDetail = orderDetail.Where(s => s.ProductId.ToString()!.Contains(searchString));
+                }
+
+            }
+
+
+            ViewData["FiltroOrderId"] = String.IsNullOrEmpty(order) ? "OrderIdDescendente" : "";
+            ViewData["FiltroProductId"] = order == "ProductIdAscendente" ? "ProductIdDescendente" : "ProductIdAscendente";
+
+
+            switch (order)
+            {
+                case "OrderIdDescendente":
+                    orderDetail = orderDetail.OrderByDescending(usuario => usuario.OrderId);
+                    break;
+                case "ProductIdAscendente":
+                    orderDetail = orderDetail.OrderBy(usuarios => usuarios.ProductId);
+                    break;
+                case "ProductIdDescendente":
+                    orderDetail = orderDetail.OrderByDescending(usuarios => usuarios.ProductId);
+                    break;
+                default:
+                    orderDetail = orderDetail.OrderBy(usuario => usuario.OrderId);
+                    break;
+            }
+
+            int pageSize = 10;
+
+            return View(await PaginatedList<OrderDetail>.CreateAsync(orderDetail.AsNoTracking(), pageNumber ?? 1, pageSize));
+
+            //var applicationDbContext = _context.OrderDetails.Include(o => o.Order).Include(o => o.Product);
+            //return View(await applicationDbContext.ToListAsync());
         }
 
         // GET: OrderDetails/Details/5

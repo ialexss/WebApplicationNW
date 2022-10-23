@@ -20,10 +20,106 @@ namespace WebApplicationNW.Controllers
         }
 
         // GET: Employees
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString, string nameColum, string order, string currentFilter, int? pageNumber)
         {
-            var applicationDbContext = _context.Employees.Include(e => e.ReportsToNavigation);
-            return View(await applicationDbContext.ToListAsync());
+
+            if (searchString != null)
+            {
+                pageNumber = 1;
+            }
+            else
+            {
+                searchString = currentFilter;
+            }
+
+            ViewData["CurrentFilter"] = searchString;
+            ViewData["NameColum"] = nameColum;
+            ViewData["CurrentOrder"] = order;
+
+
+            var employee = from m in _context.Employees
+                            select m;
+
+            if (!String.IsNullOrEmpty(nameColum) && !String.IsNullOrEmpty(searchString))
+            {
+
+                if (nameColum == "LastName")
+                {
+                    employee = employee.Where(s => s.LastName.Contains(searchString));
+                }
+                else if (nameColum == "FirstName")
+                {
+                    employee = employee.Where(s => s.FirstName!.Contains(searchString));
+                }
+                else if (nameColum == "Title")
+                {
+                    employee = employee.Where(s => s.Title!.Contains(searchString));
+                }
+                else if (nameColum == "TitleOfCourtesy")
+                {
+                    employee = employee.Where(s => s.TitleOfCourtesy!.Contains(searchString));
+                }
+                else if (nameColum == "BirthDate")
+                {
+                    employee = employee.Where(s => s.BirthDate.ToString()!.Contains(searchString));
+                }
+                else if (nameColum == "HireDate")
+                {
+                    employee = employee.Where(s => s.HireDate.ToString()!.Contains(searchString));
+                }
+                else if (nameColum == "Address")
+                {
+                    employee = employee.Where(s => s.Address!.Contains(searchString));
+                }
+                else if (nameColum == "City")
+                {
+                    employee = employee.Where(s => s.City!.Contains(searchString));
+                }
+                else if (nameColum == "Region")
+                {
+                    employee = employee.Where(s => s.Region!.Contains(searchString));
+                }
+                else if (nameColum == "PostalCode")
+                {
+                    employee = employee.Where(s => s.PostalCode!.Contains(searchString));
+                }
+                else if (nameColum == "Country")
+                {
+                    employee = employee.Where(s => s.Country!.Contains(searchString));
+                }
+                else if (nameColum == "HomePhone")
+                {
+                    employee = employee.Where(s => s.HomePhone!.Contains(searchString));
+                }
+
+            }
+
+
+            ViewData["FiltroLastName"] = String.IsNullOrEmpty(order) ? "LastNameDescendente" : "";
+            ViewData["FiltroFirstName"] = order == "FirstNameAscendente" ? "FirstNameDescendente" : "FirstNameAscendente";
+
+
+            switch (order)
+            {
+                case "LastNameDescendente":
+                    employee = employee.OrderByDescending(usuario => usuario.LastName);
+                    break;
+                case "FirstNameAscendente":
+                    employee = employee.OrderBy(usuarios => usuarios.FirstName);
+                    break;
+                case "FirstNameDescendente":
+                    employee = employee.OrderByDescending(usuarios => usuarios.FirstName);
+                    break;
+                default:
+                    employee = employee.OrderBy(usuario => usuario.LastName);
+                    break;
+            }
+
+            int pageSize = 10;
+            return View(await PaginatedList<Employee>.CreateAsync(employee.AsNoTracking(), pageNumber ?? 1, pageSize));
+
+            //var applicationDbContext = _context.Employees.Include(e => e.ReportsToNavigation);
+            //return View(await applicationDbContext.ToListAsync());
         }
 
         // GET: Employees/Details/5

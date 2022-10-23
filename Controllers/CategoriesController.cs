@@ -20,9 +20,65 @@ namespace WebApplicationNW.Controllers
         }
 
         // GET: Categories
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString, string nameColum, string order, string currentFilter, int? pageNumber)
         {
-              return View(await _context.Categories.ToListAsync());
+
+            if (searchString != null)
+            {
+                pageNumber = 1;
+            }
+            else
+            {
+                searchString = currentFilter;
+            }
+
+            ViewData["CurrentFilter"] = searchString;
+            ViewData["NameColum"] = nameColum;
+            ViewData["CurrentOrder"] = order;
+
+
+            var categorie = from m in _context.Categories
+                           select m;
+
+            if (!String.IsNullOrEmpty(nameColum) && !String.IsNullOrEmpty(searchString))
+            {
+
+                if (nameColum == "CategoryName")
+                {
+                    categorie = categorie.Where(s => s.CategoryName!.Contains(searchString));
+                }
+                else if (nameColum == "Description")
+                {
+                    categorie = categorie.Where(s => s.Description!.Contains(searchString));
+                }
+                
+            }
+
+
+            ViewData["FiltroCategoryName"] = String.IsNullOrEmpty(order) ? "CategoryNameDescendente" : "";
+            ViewData["FiltroDescription"] = order == "DescriptionAscendente" ? "DescriptionDescendente" : "DescriptionAscendente";
+
+
+            switch (order)
+            {
+                case "CategoryNameDescendente":
+                    categorie = categorie.OrderByDescending(usuario => usuario.CategoryName);
+                    break;
+                case "DescriptionAscendente":
+                    categorie = categorie.OrderBy(usuarios => usuarios.Description);
+                    break;
+                case "DescriptionDescendente":
+                    categorie = categorie.OrderByDescending(usuarios => usuarios.Description);
+                    break;
+                default:
+                    categorie = categorie.OrderBy(usuario => usuario.CategoryName);
+                    break;
+            }
+
+            int pageSize = 10;
+            return View(await PaginatedList<Category>.CreateAsync(categorie.AsNoTracking(), pageNumber ?? 1, pageSize));
+
+            //return View(await _context.Categories.ToListAsync());
         }
 
         // GET: Categories/Details/5

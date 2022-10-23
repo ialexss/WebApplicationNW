@@ -24,7 +24,7 @@ namespace WebApplicationNW.Controllers
       
 
         // GET: Customers
-        public async Task<IActionResult> Index(string searchString,string nameColum, string order,string currentFilter, int? pageNumber)
+        public async Task<IActionResult> Index(string searchString,string nameColum,string order,string currentFilter, int? pageNumber)
         {
             
 

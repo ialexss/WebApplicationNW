@@ -12,7 +12,7 @@
     <h1>Customers</h1>
 
     <p>
-        <a class="btn btn-primary" asp-action="Create">Create New</a>
+        <a class="btn btn-warning" asp-action="Create">Create New</a>
     </p>
 
 </div>
@@ -156,8 +156,7 @@
     var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
     var nextDisabled = !Model.HasNextPage ? "disabled" : "";
 }
-@*   asp-route-sortOrder="@ViewData["CurrentSort"]"*@
-@*   asp-route-currentFilter="@ViewData["CurrentFilter"]"*@
+
 <a asp-action="Index"
 
    asp-route-pageNumber="@(Model.PageIndex - 1)"
