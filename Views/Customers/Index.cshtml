@@ -1,9 +1,11 @@
-﻿@model PaginatedList<WebApplicationNW.Models.Customer>
+﻿@using Microsoft.AspNetCore.Components
+@model PaginatedList<WebApplicationNW.Models.Customer>
 @*@model IEnumerable<WebApplicationNW.Models.Customer>*@
 
 @{
     ViewData["Title"] = "Customers";
 }
+
 
 <div class="container">
 
@@ -21,8 +23,8 @@
     <div class="container text-center row g-3 justify-content-center">
 
             <div class="col-auto">
-                <select class="form-select" aria-label="Default select example" name="nameColum" >
-                    <option selected>Select</option>
+            <select class="form-select" aria-label="Default select example" name="nameColum" value="@ViewData["NameColum"]">
+                    <option selected>Filter</option>
                     <option value="City">City</option>
                     <option value="CompanyName">Company Name</option>
                     <option value="ContactName">Contact Name</option>
@@ -36,7 +38,7 @@
             </div>
             <div class="col-auto">
                 <div >
-                    <input type="text" name="SearchString" class="form-control" />
+                <input type="text" name="searchString" class="form-control" value="@ViewData["CurrentFilter"]" />
                 </div>
             </div>
             <div class="col-auto">
@@ -159,17 +161,17 @@
 <a asp-action="Index"
 
    asp-route-pageNumber="@(Model.PageIndex - 1)"
-   asp-route-searchString="@("Prueba")"
-   asp-route-nameColumn="@("namecolum")"
+   asp-route-currentFilter="@ViewData["CurrentFilter"]"
+   asp-route-nameColumn="@("Namecolum")"
+   asp-route-order="@ViewData["CurrentOrder"]"
    class="btn btn-default @prevDisabled">
     Previous
 </a>
 <a asp-action="Index"
-   asp-route-searchString="@("Prueba")"
-   asp-route-nameColum="@("namecolum")"
-   asp-route-sortOrder="@ViewData["CurrentSort"]"
+   asp-route-nameColum="@ViewData["NameColum"]"
    asp-route-pageNumber="@(Model.PageIndex + 1)"
    asp-route-currentFilter="@ViewData["CurrentFilter"]"
+   asp-route-order="@ViewData["CurrentOrder"]"
    class="btn btn-default @nextDisabled">
     Next
 </a>

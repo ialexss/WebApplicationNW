@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -19,18 +21,26 @@ namespace WebApplicationNW.Controllers
             _context = context;
         }
 
+      
+
         // GET: Customers
-        public async Task<IActionResult> Index(string searchString,string nameColum, string order, int? pageNumber)
+        public async Task<IActionResult> Index(string searchString,string nameColum, string order,string currentFilter, int? pageNumber)
         {
-            System.Console.WriteLine("Llego" + searchString + nameColum+ "===================");
-            //if (searchString != null)
-            //{
-            //    pageNumber = 1;
-            //}
-            //else
-            //{
-            //    searchString = currentFilter;
-            //}
+            
+
+            if (searchString != null)
+            {
+                pageNumber = 1;
+            }
+            else
+            {
+                searchString = currentFilter;
+            }
+
+            ViewData["CurrentFilter"] = searchString;
+            ViewData["NameColum"] = nameColum;
+            ViewData["CurrentOrder"] = order;
+
 
             var customer = from m in _context.Customers
                             select m;
