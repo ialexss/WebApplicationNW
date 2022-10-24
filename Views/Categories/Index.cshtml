@@ -81,9 +81,9 @@
 }
 
 <a asp-action="Index"
+   asp-route-nameColum="@ViewData["NameColum"]"
    asp-route-pageNumber="@(Model.PageIndex - 1)"
    asp-route-currentFilter="@ViewData["CurrentFilter"]"
-   asp-route-nameColumn="@("Namecolum")"
    asp-route-order="@ViewData["CurrentOrder"]"
    class="btn btn-default @prevDisabled">
     Previous
