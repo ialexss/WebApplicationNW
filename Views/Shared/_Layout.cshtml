@@ -33,11 +33,15 @@
                         <li class="nav-item">
                             <a class="nav-link " asp-area="" asp-controller="Employees" asp-action="Index">Employees</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link " asp-area="" asp-controller="OrderDetails" asp-action="Index">Order details</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link " asp-area="" asp-controller="Orders" asp-action="Index">Orders</a>
+
+                        <li class="nav-item dropdown ">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Orders
+                            </a>
+                            <ul class="dropdown-menu bg-dark">
+                                <li><a class="nav-link " asp-area="" asp-controller="Orders" asp-action="Index">Orders</a></li>
+                                <li><a class="nav-link " asp-area="" asp-controller="OrderDetails" asp-action="Index">Order details</a></li>
+                            </ul>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link " asp-area="" asp-controller="Products" asp-action="Index">Products</a>
