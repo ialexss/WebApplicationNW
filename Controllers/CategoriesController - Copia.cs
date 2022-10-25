@@ -1,117 +1,84 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlTypes;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
 using System.Threading.Tasks;
-using DinkToPdf;
-using DinkToPdf.Contracts;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.CodeAnalysis.RulesetToEditorconfig;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using WebApplicationNW.Data;
 using WebApplicationNW.Models;
 
 namespace WebApplicationNW.Controllers
 {
-    public class CategoriesController : Controller
+    public class CategoriesController1 : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly IConverter _converter;
-        public CategoriesController(ApplicationDbContext context, IConverter converter)
+
+        public CategoriesController1(ApplicationDbContext context)
         {
             _context = context;
-            _converter = converter;
         }
 
         // GET: Categories
-        public async Task<IActionResult> Index(string searchString, string nameColumn, string currentFilter, int? pageNumber, string order="Asc_CategoryName")
+        public async Task<IActionResult> Index(string searchString, string nameColum, string order, string currentFilter, int? pageNumber)
         {
 
             if (searchString != null)
+            {
                 pageNumber = 1;
+            }
             else
+            {
                 searchString = currentFilter;
+            }
 
             ViewData["CurrentFilter"] = searchString;
-            ViewData["NameColumn"] = nameColumn;
+            ViewData["NameColum"] = nameColum;
             ViewData["CurrentOrder"] = order;
 
 
-            var categories = from m in _context.Categories
+            var categorie = from m in _context.Categories
                            select m;
 
-            if (!String.IsNullOrEmpty(nameColumn) && !String.IsNullOrEmpty(searchString))
+            if (!String.IsNullOrEmpty(nameColum) && !String.IsNullOrEmpty(searchString))
             {
-                var parameter_filter = Expression.Parameter(typeof(Category), "parameter");
-                var lambda_filter = Expression.Lambda<Func<Category, bool>>(
-                                  Expression.Call(
-                                      instance: Expression.Property(parameter_filter, nameColumn),
-                                      method: typeof(string).GetMethod("Contains", new[] { typeof(string) }),
-                                      arguments: Expression.Constant(searchString)
-                                  ), parameter_filter);
-                //categories = Queryable.Where(categories, lambda);
-                categories = categories.Where(lambda_filter); 
-            }
 
-            foreach (var column in Category.Columns)
-            {
-                ViewData["Order"+column.Name] = ((order == "Asc_" + column.Name) ? "Des_" : "Asc_") + column.Name;
+                if (nameColum == "CategoryName")
+                {
+                    categorie = categorie.Where(s => s.CategoryName!.Contains(searchString));
+                }
+                else if (nameColum == "Description")
+                {
+                    categorie = categorie.Where(s => s.Description!.Contains(searchString));
+                }
+                
             }
 
 
-            string columnaAordenar = order.Substring(4, order.Length-4);
-            string modo= order.Substring(0, 3);
-            var parameter_order = Expression.Parameter(typeof(Category), "parameter");
-            var lambda_order = Expression.Lambda<Func<Category, Object>>(Expression.Property(parameter_order, columnaAordenar), parameter_order);
-            categories = modo=="Asc"? categories.OrderBy(lambda_order): categories.OrderByDescending(lambda_order);
+            ViewData["FiltroCategoryName"] = String.IsNullOrEmpty(order) ? "CategoryNameDescendente" : "";
+            ViewData["FiltroDescription"] = order == "DescriptionAscendente" ? "DescriptionDescendente" : "DescriptionAscendente";
+
+
+            switch (order)
+            {
+                case "CategoryNameDescendente":
+                    categorie = categorie.OrderByDescending(usuario => usuario.CategoryName);
+                    break;
+                case "DescriptionAscendente":
+                    categorie = categorie.OrderBy(usuarios => usuarios.Description);
+                    break;
+                case "DescriptionDescendente":
+                    categorie = categorie.OrderByDescending(usuarios => usuarios.Description);
+                    break;
+                default:
+                    categorie = categorie.OrderBy(usuario => usuario.CategoryName);
+                    break;
+            }
 
             int pageSize = 10;
-            return View(await PaginatedList<Category>.CreateAsync(categories.AsNoTracking(), pageNumber ?? 1, pageSize));
+            return View(await PaginatedList<Category>.CreateAsync(categorie.AsNoTracking(), pageNumber ?? 1, pageSize));
 
             //return View(await _context.Categories.ToListAsync());
-        }
-
-        public async Task<IActionResult> VistaParaPdf()
-        {
-
-            var category = from m in _context.Categories
-                           select m;
-
-            return View(await category.ToListAsync());
-        }
-
-        public IActionResult MostrarPDFenPagina()
-        {
-            string pagina_actual = HttpContext.Request.Path;
-            string url_pagina = HttpContext.Request.GetEncodedUrl();
-            url_pagina = url_pagina.Replace(pagina_actual, "");
-            url_pagina = $"{url_pagina}/Categories/VistaParaPDF";
-
-
-            var pdf = new HtmlToPdfDocument()
-            {
-                GlobalSettings = new GlobalSettings()
-                {
-                    PaperSize = PaperKind.A4,
-                    Orientation = Orientation.Portrait
-                },
-                Objects = {
-                    new ObjectSettings(){
-                        Page = url_pagina
-                    }
-                }
-
-            };
-
-            var archivoPDF = _converter.Convert(pdf);
-
-
-            return File(archivoPDF, "application/pdf");
         }
 
         // GET: Categories/Details/5

@@ -1,10 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace WebApplicationNW.Models
 {
     public partial class Category
     {
+        public static List<PropertyInfo> Columns = CargarColumnas();
+        private static List<PropertyInfo> CargarColumnas()
+        {
+            List<PropertyInfo> c = new List<PropertyInfo>();
+            foreach (PropertyInfo column in typeof(Category).GetProperties())
+            {
+                string nombre = column.Name.ToUpper();
+                string tipo = column.PropertyType.Name;
+                if (nombre != "CATEGORY" + "ID" && tipo!= "ICollection`1")
+                    c.Add(column);
+            }
+            return c;
+        }
         public Category()
         {
             Products = new HashSet<Product>();

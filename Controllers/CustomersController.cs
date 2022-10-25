@@ -12,6 +12,7 @@ using WebApplicationNW.Models;
 using DinkToPdf;
 using DinkToPdf.Contracts;
 using Microsoft.AspNetCore.Http.Extensions;
+using System.Linq.Expressions;
 
 namespace WebApplicationNW.Controllers
 {
@@ -27,148 +28,52 @@ namespace WebApplicationNW.Controllers
             _converter = converter;
         }
 
-      
+
 
         // GET: Customers
-        public async Task<IActionResult> Index(string searchString,string nameColum,string order,string currentFilter, int? pageNumber)
+        public async Task<IActionResult> Index(string searchString, string nameColumn, string currentFilter, int? pageNumber, string order = "Des_CompanyName")
         {
-            
 
             if (searchString != null)
-            {
                 pageNumber = 1;
-            }
             else
-            {
                 searchString = currentFilter;
-            }
 
             ViewData["CurrentFilter"] = searchString;
-            ViewData["NameColum"] = nameColum;
+            ViewData["NameColumn"] = nameColumn;
             ViewData["CurrentOrder"] = order;
 
 
-            var customer = from m in _context.Customers
-                            select m;
+            var customers = from m in _context.Customers
+                             select m;
 
-            if (!String.IsNullOrEmpty(nameColum) && !String.IsNullOrEmpty(searchString))
+            if (!String.IsNullOrEmpty(nameColumn) && !String.IsNullOrEmpty(searchString))
             {
+                var paramenter_filter = Expression.Parameter(typeof(Customer), "parameter");
+                var lambda_filter = Expression.Lambda<Func<Customer, bool>>(
+                                  Expression.Call(
+                                      instance: Expression.Property(paramenter_filter, nameColumn),
+                                      method: typeof(string).GetMethod("Contains", new[] { typeof(string) }),
+                                      arguments: Expression.Constant(searchString)
+                                  ), paramenter_filter);
+                customers = customers.Where(lambda_filter);
+            }
 
-                if (nameColum == "CompanyName")
-                {
-                    customer = customer.Where(s => s.CompanyName!.Contains(searchString));
-                }
-                else if (nameColum == "ContactName")
-                {
-                    customer = customer.Where(s => s.ContactName!.Contains(searchString));
-                }
-                else if (nameColum == "ContactTitle")
-                {
-                    customer = customer.Where(s => s.ContactTitle!.Contains(searchString));
-                }
-                else if (nameColum == "Address")
-                {
-                    customer = customer.Where(s => s.Address!.Contains(searchString));
-                }
-                else if (nameColum == "City")
-                {
-                    customer = customer.Where(s => s.City!.Contains(searchString));
-                }
-                else if (nameColum == "Region")
-                {
-                    customer = customer.Where(s => s.Region!.Contains(searchString));
-                }
-                else if (nameColum == "PostalCode")
-                {
-                    customer = customer.Where(s => s.PostalCode!.Contains(searchString));
-                }
-                else if (nameColum == "Country")
-                {
-                    customer = customer.Where(s => s.Country!.Contains(searchString));
-                }
-                else if (nameColum == "Phone")
-                {
-                    customer = customer.Where(s => s.Phone!.Contains(searchString));
-                }
-                else if (nameColum == "Fax")
-                {
-                    customer = customer.Where(s => s.Fax!.Contains(searchString));
-                }
+            foreach (var column in Customer.Columns)
+            {
+                ViewData["Order" + column.Name] = ((order == "Asc_" + column.Name) ? "Des_" : "Asc_") + column.Name;
             }
 
 
-            ViewData["FiltroCompany"] = String.IsNullOrEmpty(order) ? "CompanyDescendente" : "";
-            ViewData["FiltroName"] = order == "NameAscendente" ? "NameDescendente" : "NameAscendente";
-            ViewData["FiltroContactTitle"] = order == "ContactTitleAscendente" ? "ContactTitleDescendente" : "ContactTitleAscendente";
-            ViewData["FiltroAddress"] = order == "AddressAscendente" ? "AddressDescendente" : "AddressAscendente";
-            ViewData["FiltroCity"] = order == "CityAscendente" ? "CityDescendente" : "CityAscendente";
-            ViewData["FiltroPostalCode"] = order == "PostalCodeAscendente" ? "PostalCodeDescendente" : "PostalCodeAscendente";
-            ViewData["FiltroCountry"] = order == "CountryAscendente" ? "CountryDescendente" : "CountryAscendente";
-            ViewData["FiltroPhone"] = order == "PhoneAscendente" ? "PhoneDescendente" : "PhoneAscendente";
-            ViewData["FiltroFax"] = order == "FaxAscendente" ? "FaxDescendente" : "FaxAscendente";
-
-            switch (order)
-            {
-                case "CompanyDescendente":
-                    customer = customer.OrderByDescending(usuario => usuario.CompanyName);
-                    break;
-                case "NameAscendente":
-                    customer = customer.OrderBy(usuarios => usuarios.ContactName);
-                    break;
-                case "NameDescendente":
-                    customer = customer.OrderByDescending(usuarios => usuarios.ContactName);
-                    break;
-                case "ContactTitleAscendente":
-                    customer = customer.OrderBy(usuarios => usuarios.ContactTitle);
-                    break;
-                case "ContactTitleDescendente":
-                    customer = customer.OrderByDescending(usuarios => usuarios.ContactTitle);
-                    break;
-                case "AddressAscendente":
-                    customer = customer.OrderBy(usuarios => usuarios.Address);
-                    break;
-                case "AddressDescendente":
-                    customer = customer.OrderByDescending(usuarios => usuarios.Address);
-                    break;
-                case "CityAscendente":
-                    customer = customer.OrderBy(usuarios => usuarios.City);
-                    break;
-                case "CityDescendente":
-                    customer = customer.OrderByDescending(usuarios => usuarios.City);
-                    break;
-                case "PostalCodeAscendente":
-                    customer = customer.OrderBy(usuarios => usuarios.PostalCode);
-                    break;
-                case "PostalCodeDescendente":
-                    customer = customer.OrderByDescending(usuarios => usuarios.PostalCode);
-                    break;
-                case "CountryAscendente":
-                    customer = customer.OrderBy(usuarios => usuarios.Country);
-                    break;
-                case "CountryDescendente":
-                    customer = customer.OrderByDescending(usuarios => usuarios.Country);
-                    break;
-                case "PhoneAscendente":
-                    customer = customer.OrderBy(usuarios => usuarios.Phone);
-                    break;
-                case "PhoneDescendente":
-                    customer = customer.OrderByDescending(usuarios => usuarios.Phone);
-                    break;
-                case "FaxAscendente":
-                    customer = customer.OrderBy(usuarios => usuarios.Fax);
-                    break;
-                case "FaxDescendente":
-                    customer = customer.OrderByDescending(usuarios => usuarios.Fax);
-                    break;
-                default:
-                    customer = customer.OrderBy(usuario => usuario.ContactName);
-                    break;
-            }
+            string columnaAordenar = order.Substring(4, order.Length - 4);
+            string modo = order.Substring(0, 3);
+            var parameter_order = Expression.Parameter(typeof(Customer), "parameter");
+            var lambda_order = Expression.Lambda<Func<Customer, Object>>(Expression.Property(parameter_order, columnaAordenar), parameter_order);
+            customers = modo == "Asc" ? customers.OrderBy(lambda_order) : customers.OrderByDescending(lambda_order);
 
             int pageSize = 10;
-            return View(await PaginatedList<Customer>.CreateAsync(customer.AsNoTracking(), pageNumber ?? 1, pageSize));
+            return View(await PaginatedList<Customer>.CreateAsync(customers.AsNoTracking(), pageNumber ?? 1, pageSize));
 
-            //return View(await customer.ToListAsync());
         }
         public async Task<IActionResult> VistaParaPDF(string searchString, string nameColum, string order, string currentFilter, int? pageNumber)
         {
