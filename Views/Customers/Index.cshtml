@@ -14,6 +14,9 @@
     <p>
         <a class="btn btn-warning" asp-action="Create">Create New</a>
     </p>
+    <p>
+        <a class="btn btn-dark btn-sm" asp-action="MostrarPDFenPagina"> GET PDF</a>
+    </p>
 
 </div>
 
@@ -157,7 +160,7 @@
     var nextDisabled = !Model.HasNextPage ? "disabled" : "";
 }
 
-<a asp-action="Index"
+<a asp-action="Index" 
    asp-route-nameColum="@ViewData["NameColum"]"
    asp-route-pageNumber="@(Model.PageIndex - 1)"
    asp-route-currentFilter="@ViewData["CurrentFilter"]"
@@ -165,7 +168,7 @@
    class="btn btn-default @prevDisabled">
     Previous
 </a>
-<a asp-action="Index"
+<a asp-action="Index" 
    asp-route-nameColum="@ViewData["NameColum"]"
    asp-route-pageNumber="@(Model.PageIndex + 1)"
    asp-route-currentFilter="@ViewData["CurrentFilter"]"

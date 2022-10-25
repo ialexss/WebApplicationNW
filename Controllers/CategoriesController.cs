@@ -2,8 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DinkToPdf;
+using DinkToPdf.Contracts;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.CodeAnalysis.RulesetToEditorconfig;
 using Microsoft.EntityFrameworkCore;
 using WebApplicationNW.Data;
 using WebApplicationNW.Models;
@@ -13,10 +17,11 @@ namespace WebApplicationNW.Controllers
     public class CategoriesController : Controller
     {
         private readonly ApplicationDbContext _context;
-
-        public CategoriesController(ApplicationDbContext context)
+        private readonly IConverter _converter;
+        public CategoriesController(ApplicationDbContext context, IConverter converter)
         {
             _context = context;
+            _converter = converter;
         }
 
         // GET: Categories
@@ -79,6 +84,44 @@ namespace WebApplicationNW.Controllers
             return View(await PaginatedList<Category>.CreateAsync(categorie.AsNoTracking(), pageNumber ?? 1, pageSize));
 
             //return View(await _context.Categories.ToListAsync());
+        }
+
+        public async Task<IActionResult> VistaParaPdf()
+        {
+
+            var category = from m in _context.Categories
+                           select m;
+
+            return View(await category.ToListAsync());
+        }
+
+        public IActionResult MostrarPDFenPagina()
+        {
+            string pagina_actual = HttpContext.Request.Path;
+            string url_pagina = HttpContext.Request.GetEncodedUrl();
+            url_pagina = url_pagina.Replace(pagina_actual, "");
+            url_pagina = $"{url_pagina}/Categories/VistaParaPDF";
+
+
+            var pdf = new HtmlToPdfDocument()
+            {
+                GlobalSettings = new GlobalSettings()
+                {
+                    PaperSize = PaperKind.A4,
+                    Orientation = Orientation.Portrait
+                },
+                Objects = {
+                    new ObjectSettings(){
+                        Page = url_pagina
+                    }
+                }
+
+            };
+
+            var archivoPDF = _converter.Convert(pdf);
+
+
+            return File(archivoPDF, "application/pdf");
         }
 
         // GET: Categories/Details/5

@@ -1,0 +1,85 @@
+﻿@using Microsoft.AspNetCore.Components
+
+@model IEnumerable<WebApplicationNW.Models.Category>
+@*@model PaginatedList<WebApplicationNW.Models.Customer>*@
+
+
+@{
+    ViewData["Title"] = "Categories";
+    Layout = null;
+}
+
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>VistaParaPDF</title>
+    <style>
+        h1 {
+            color: black
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        td, th {
+            border: 1px solid gray;
+            padding: 15px;
+            font-size: 22px;
+            text-align: center;
+        }
+
+        table th {
+            background-color: #FF9E00;
+            color: white;
+        }
+
+        img {
+            width: 100px;
+        }
+    </style>
+</head>
+
+<br />
+<img src="https://static.vecteezy.com/system/resources/previews/010/150/738/original/shopping-bag-icon-sale-package-sign-design-free-png.png" />
+<br />
+
+<div class="container">
+
+    <h1>Categories</h1>
+
+</div>
+
+<br />
+
+<table class="table table-bordered table-sm">
+    <thead>
+        <tr>
+            <th>
+ 
+                    @Html.DisplayNameFor(model => model.CategoryName)
+
+
+            </th>
+            <th>
+
+                    @Html.DisplayNameFor(model => model.Description)
+
+
+            </th>
+
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CategoryName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Description)
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

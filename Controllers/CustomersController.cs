@@ -9,6 +9,9 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebApplicationNW.Data;
 using WebApplicationNW.Models;
+using DinkToPdf;
+using DinkToPdf.Contracts;
+using Microsoft.AspNetCore.Http.Extensions;
 
 namespace WebApplicationNW.Controllers
 {
@@ -16,9 +19,12 @@ namespace WebApplicationNW.Controllers
     {
         private readonly ApplicationDbContext _context;
 
-        public CustomersController(ApplicationDbContext context)
+        private readonly IConverter _converter;
+
+        public CustomersController(ApplicationDbContext context,IConverter converter)
         {
             _context = context;
+            _converter = converter;
         }
 
       
@@ -163,6 +169,43 @@ namespace WebApplicationNW.Controllers
             return View(await PaginatedList<Customer>.CreateAsync(customer.AsNoTracking(), pageNumber ?? 1, pageSize));
 
             //return View(await customer.ToListAsync());
+        }
+        public async Task<IActionResult> VistaParaPDF(string searchString, string nameColum, string order, string currentFilter, int? pageNumber)
+        {
+
+            var customer = from m in _context.Customers
+                           select m;
+
+            return View(await customer.ToListAsync());
+        }
+
+        public IActionResult MostrarPDFenPagina()
+        {
+            string pagina_actual = HttpContext.Request.Path;
+            string url_pagina = HttpContext.Request.GetEncodedUrl();
+            url_pagina = url_pagina.Replace(pagina_actual, "");
+            url_pagina = $"{url_pagina}/Customers/VistaParaPDF";
+
+
+            var pdf = new HtmlToPdfDocument()
+            {
+                GlobalSettings = new GlobalSettings()
+                {
+                    PaperSize = PaperKind.A4,
+                    Orientation = Orientation.Portrait
+                },
+                Objects = {
+                    new ObjectSettings(){
+                        Page = url_pagina
+                    }
+                }
+
+            };
+
+            var archivoPDF = _converter.Convert(pdf);
+
+
+            return File(archivoPDF,"application/pdf");
         }
 
         // GET: Customers/Details/5

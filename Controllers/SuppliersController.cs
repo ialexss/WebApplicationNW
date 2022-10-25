@@ -11,7 +11,7 @@ using WebApplicationNW.Models;
 
 namespace WebApplicationNW.Controllers
 {
-    [Authorize]
+    //[Authorize]
     public class SuppliersController : Controller
     {
         private readonly ApplicationDbContext _context;
