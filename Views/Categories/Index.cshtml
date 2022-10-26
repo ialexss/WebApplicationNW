@@ -1,4 +1,5 @@
-﻿@model PaginatedList<WebApplicationNW.Models.Category>
+﻿@using System.Drawing
+@model PaginatedList<WebApplicationNW.Models.Category>
 
 @{
     ViewData["Title"] = "Categories";
@@ -22,7 +23,10 @@
                 <option selected>Filter</option>
                 @foreach (var column in Category.Columns)
                 {
-                    <option selected="@(ViewData["NameColumn"]+""==@column.Name)" value="@column.Name">@column.Name</option>
+                    if (column.PropertyType.Name != "Byte[]")
+                    {
+                        <option selected="@(ViewData["NameColumn"]+""==@column.Name)" value="@column.Name">@column.Name</option>
+                    }
                 }
             </select>
         </div>
@@ -59,7 +63,26 @@
             <tr>
                 @foreach (var column in Category.Columns) {
                     <td>
-                        @column.GetValue(fila)
+                        @if (column.PropertyType.Name == "Byte[]")
+                        {
+                            if (column.GetValue(fila) != null)
+                            {
+                                Byte[] byteBLOBData = (Byte[])(column.GetValue(fila)!);
+                                @*MemoryStream stmBLOBData = new MemoryStream(byteBLOBData);*@
+                                @*Image image1 = Image.FromStream(stmBLOBData);*@
+                                Image image1 = (Bitmap)((new ImageConverter()).ConvertFrom(byteBLOBData)!); ;
+
+                                MemoryStream ms = new MemoryStream();
+                                image1.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                                Byte[] byte1=ms.ToArray();
+                                
+                                <img width="100" height="100" src="@("data:image;base64," + Convert.ToBase64String(byte1))"/>
+                            }
+                        }
+                        else
+                        {
+                            @column.GetValue(fila)
+                        }
                     </td>
                 }
                 <td>

@@ -54,7 +54,6 @@ namespace WebApplicationNW.Controllers
                 ViewData["Order" + column.Name] = ((order == "Asc_" + column.Name) ? "Des_" : "Asc_") + column.Name;
             }
 
-
             string columnaAordenar = order.Substring(4, order.Length - 4);
             string modo = order.Substring(0, 3);
             var parameter_order = Expression.Parameter(typeof(Employee), "parameter");

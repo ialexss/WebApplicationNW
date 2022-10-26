@@ -12,7 +12,7 @@ namespace WebApplicationNW.Models
             List<PropertyInfo> c = new List<PropertyInfo>();
             foreach (PropertyInfo column in typeof(Employee).GetProperties())
             {
-                string[] columnasAOcultar = new string[] { "EMPLOYEEID", "TITLEOFCOURTESY", "REGION", "COUNTRY", "NOTES", "PHOTOPATH", "REPORTSTONAVIGATION","PHOTO" };
+                string[] columnasAOcultar = new string[] { "EMPLOYEEID", "TITLEOFCOURTESY", "REGION", "COUNTRY", "NOTES", "PHOTOPATH"};
                 string tipo = column.PropertyType.Name;
                 if (!columnasAOcultar.Contains(column.Name.ToUpper()) && tipo != "ICollection`1")
                     c.Add(column);

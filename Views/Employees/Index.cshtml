@@ -1,4 +1,6 @@
-﻿@model PaginatedList<WebApplicationNW.Models.Employee>
+﻿@using System.Drawing
+@using System.Reflection
+@model PaginatedList<WebApplicationNW.Models.Employee>
 
 @{
     ViewData["Title"] = "Employees";
@@ -58,7 +60,26 @@
                 @foreach (var column in Employee.Columns)
                 {
                     <td>
-                        @column.GetValue(fila)
+                        @if (column.PropertyType.Name == "Byte[]")
+                        {
+                            if (column.GetValue(fila) != null)
+                            {
+                                Byte[] byteBLOBData = (Byte[])(column.GetValue(fila)!);
+                                @*MemoryStream stmBLOBData = new MemoryStream(byteBLOBData);*@
+                                @*Image image1 = Image.FromStream(stmBLOBData);*@
+                                Image image1 = (Bitmap)((new ImageConverter()).ConvertFrom(byteBLOBData)!); ;
+
+                                MemoryStream ms = new MemoryStream();
+                                image1.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                                Byte[] byte1 = ms.ToArray();
+
+                                <img width="100" height="100" src="@("data:image;base64," + Convert.ToBase64String(byte1))" />
+                            }
+                        }
+                        else
+                        {
+                            @column.GetValue(fila)
+                        }
                     </td>
                 }
                 <td>
