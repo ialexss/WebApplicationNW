@@ -1,4 +1,5 @@
-﻿@model IEnumerable<WebApplicationNW.Models.Product>
+﻿@*@model IEnumerable<WebApplicationNW.Models.Product>*@
+@model PaginatedList<WebApplicationNW.Models.Product>
 
 @{
     ViewData["Title"] = "Index";
@@ -9,75 +10,88 @@
 <p>
     <a asp-action="Create">Create New</a>
 </p>
-<table class="table">
+<form class="" asp-controller="Customers" asp-action="Index">
+
+    <div class="container text-center row g-3 justify-content-center">
+
+        <div class="col-auto">
+            <select class="form-select" aria-label="Default select example" name="nameColumn">
+                <option selected>Filter</option>
+                @foreach (var column in Product.Columns)
+                {
+                    <option selected="@(ViewData["NameColumn"]+""==@column.Name)" value="@column.Name">@column.Name</option>
+                }
+            </select>
+        </div>
+        <div class="col-auto">
+            <div>
+                <input type="text" name="searchString" class="form-control" value="@ViewData["CurrentFilter"]" />
+            </div>
+        </div>
+        <div class="col-auto">
+            <input type="submit" value="Search" class="btn btn-outline-primary" />
+        </div>
+
+    </div>
+
+</form>
+<br />
+<table class="table table-bordered table-sm">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.ProductName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.QuantityPerUnit)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.UnitPrice)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.UnitsInStock)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.UnitsOnOrder)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ReorderLevel)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Discontinued)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Category)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Supplier)
-            </th>
+            @foreach (var column in Product.Columns)
+            {
+                <th>
+                    <a asp-action="Index" asp-route-order="@ViewData["Order"+column.Name]">
+                        @column.Name
+                    </a>
+                </th>
+            }
+
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.ProductName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.QuantityPerUnit)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UnitPrice)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UnitsInStock)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UnitsOnOrder)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ReorderLevel)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Discontinued)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Category.CategoryId)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Supplier.SupplierId)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.ProductId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.ProductId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.ProductId">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var fila in Model)
+        {
+            <tr>
+                @foreach (var column in Product.Columns)
+                {
+                    <td>
+                        @column.GetValue(fila)
+                    </td>
+                }
+                <td>
+                    <div class="btn-group">
+                        <a class="btn btn-outline-primary" asp-action="Edit" asp-route-id="@fila.ProductId">Edit</a>
+                        <a class="btn btn-outline-primary" asp-action="Details" asp-route-id="@fila.ProductId">Details</a>
+                        <a class="btn btn-outline-primary" asp-action="Delete" asp-route-id="@fila.ProductId">Delete</a>
+                    </div>
+                </td>
+            </tr>
+        }
     </tbody>
+
 </table>
+
+@{
+    var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+    var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+}
+
+<a asp-action="Index"
+   asp-route-nameColumn="@ViewData["NameColumn"]"
+   asp-route-pageNumber="@(Model.PageIndex - 1)"
+   asp-route-currentFilter="@ViewData["CurrentFilter"]"
+   asp-route-order="@ViewData["CurrentOrder"]"
+   class="btn btn-default @prevDisabled">
+    Previous
+</a>
+<a asp-action="Index"
+   asp-route-nameColumn="@ViewData["NameColumn"]"
+   asp-route-pageNumber="@(Model.PageIndex + 1)"
+   asp-route-currentFilter="@ViewData["CurrentFilter"]"
+   asp-route-order="@ViewData["CurrentOrder"]"
+   class="btn btn-default @nextDisabled">
+    Next
+</a>

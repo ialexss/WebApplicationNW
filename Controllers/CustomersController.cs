@@ -31,7 +31,7 @@ namespace WebApplicationNW.Controllers
 
 
         // GET: Customers
-        public async Task<IActionResult> Index(string searchString, string nameColumn, string currentFilter, int? pageNumber, string order = "Des_CompanyName")
+        public async Task<IActionResult> Index(string searchString, string nameColumn, string currentFilter, int? pageNumber, string order = "Asc_CompanyName")
         {
 
             if (searchString != null)

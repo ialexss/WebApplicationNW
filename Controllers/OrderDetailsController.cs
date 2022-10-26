@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -20,81 +21,52 @@ namespace WebApplicationNW.Controllers
         }
 
         // GET: OrderDetails
-        public async Task<IActionResult> Index(string searchString, string nameColum, string order, string currentFilter, int? pageNumber)
+        public async Task<IActionResult> Index(string searchString, string nameColumn, string currentFilter, int? pageNumber, string order = "")
         {
 
             if (searchString != null)
-            {
                 pageNumber = 1;
-            }
             else
-            {
                 searchString = currentFilter;
-            }
 
             ViewData["CurrentFilter"] = searchString;
-            ViewData["NameColum"] = nameColum;
+            ViewData["NameColumn"] = nameColumn;
             ViewData["CurrentOrder"] = order;
 
 
-            var orderDetail = from m in _context.OrderDetails
-                              select m;
+            var orderDetails = from m in _context.OrderDetails
+                            select m;
 
-            orderDetail = _context.OrderDetails.Include(o => o.Order).Include(o => o.Product);
-
-            if (!String.IsNullOrEmpty(nameColum) && !String.IsNullOrEmpty(searchString))
+            if (!String.IsNullOrEmpty(nameColumn) && !String.IsNullOrEmpty(searchString))
             {
+                var paramenter_filter = Expression.Parameter(typeof(OrderDetail), "parameter");
+                var lambda_filter = Expression.Lambda<Func<OrderDetail, bool>>(
+                                  Expression.Call(
+                                      instance: Expression.Property(paramenter_filter, nameColumn),
+                                      method: typeof(string).GetMethod("Contains", new[] { typeof(string) }),
+                                      arguments: Expression.Constant(searchString)
+                                  ), paramenter_filter);
+                orderDetails = orderDetails.Where(lambda_filter);
+            }
 
-                if (nameColum == "UnitPrice")
-                {
-                    orderDetail = orderDetail.Where(s => s.UnitPrice.ToString()!.Contains(searchString));
-                }
-                else if (nameColum == "Quantity")
-                {
-                    orderDetail = orderDetail.Where(s => s.Quantity.ToString()!.Contains(searchString));
-                }
-                else if (nameColum == "Discount")
-                {
-                    orderDetail = orderDetail.Where(s => s.Discount.ToString()!.Contains(searchString));
-                }
-                else if (nameColum == "OrderId")
-                {
-                    orderDetail = orderDetail.Where(s => s.OrderId.ToString()!.Contains(searchString));
-                }
-                else if (nameColum == "ProductId")
-                {
-                    orderDetail = orderDetail.Where(s => s.ProductId.ToString()!.Contains(searchString));
-                }
-
+            foreach (var column in OrderDetail.Columns)
+            {
+                ViewData["Order" + column.Name] = ((order == "Asc_" + column.Name) ? "Des_" : "Asc_") + column.Name;
             }
 
 
-            ViewData["FiltroOrderId"] = String.IsNullOrEmpty(order) ? "OrderIdDescendente" : "";
-            ViewData["FiltroProductId"] = order == "ProductIdAscendente" ? "ProductIdDescendente" : "ProductIdAscendente";
-
-
-            switch (order)
+            if (!String.IsNullOrEmpty(order))
             {
-                case "OrderIdDescendente":
-                    orderDetail = orderDetail.OrderByDescending(usuario => usuario.OrderId);
-                    break;
-                case "ProductIdAscendente":
-                    orderDetail = orderDetail.OrderBy(usuarios => usuarios.ProductId);
-                    break;
-                case "ProductIdDescendente":
-                    orderDetail = orderDetail.OrderByDescending(usuarios => usuarios.ProductId);
-                    break;
-                default:
-                    orderDetail = orderDetail.OrderBy(usuario => usuario.OrderId);
-                    break;
+                string columnaAordenar = order.Substring(4, order.Length - 4);
+                string modo = order.Substring(0, 3);
+                var parameter_order = Expression.Parameter(typeof(OrderDetail), "parameter");
+                var lambda_order = Expression.Lambda<Func<OrderDetail, Object>>(Expression.Property(parameter_order, columnaAordenar), parameter_order);
+                orderDetails = modo == "Asc" ? orderDetails.OrderBy(lambda_order) : orderDetails.OrderByDescending(lambda_order);
             }
 
             int pageSize = 10;
+            return View(await PaginatedList<OrderDetail>.CreateAsync(orderDetails.AsNoTracking(), pageNumber ?? 1, pageSize));
 
-            return View(await PaginatedList<OrderDetail>.CreateAsync(orderDetail.AsNoTracking(), pageNumber ?? 1, pageSize));
-
-            //var applicationDbContext = _context.OrderDetails.Include(o => o.Order).Include(o => o.Product);
-            //return View(await applicationDbContext.ToListAsync());
         }
 
         // GET: OrderDetails/Details/5

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -20,9 +21,49 @@ namespace WebApplicationNW.Controllers
         }
 
         // GET: Shippers
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString, string nameColumn, string currentFilter, int? pageNumber, string order = "Asc_CompanyName")
         {
-              return View(await _context.Shippers.ToListAsync());
+
+            if (searchString != null)
+                pageNumber = 1;
+            else
+                searchString = currentFilter;
+
+            ViewData["CurrentFilter"] = searchString;
+            ViewData["NameColumn"] = nameColumn;
+            ViewData["CurrentOrder"] = order;
+
+
+            var shippers = from m in _context.Shippers
+                            select m;
+
+            if (!String.IsNullOrEmpty(nameColumn) && !String.IsNullOrEmpty(searchString))
+            {
+                var paramenter_filter = Expression.Parameter(typeof(Shipper), "parameter");
+                var lambda_filter = Expression.Lambda<Func<Shipper, bool>>(
+                                  Expression.Call(
+                                      instance: Expression.Property(paramenter_filter, nameColumn),
+                                      method: typeof(string).GetMethod("Contains", new[] { typeof(string) }),
+                                      arguments: Expression.Constant(searchString)
+                                  ), paramenter_filter);
+                shippers = shippers.Where(lambda_filter);
+            }
+
+            foreach (var column in Shipper.Columns)
+            {
+                ViewData["Order" + column.Name] = ((order == "Asc_" + column.Name) ? "Des_" : "Asc_") + column.Name;
+            }
+
+
+            string columnaAordenar = order.Substring(4, order.Length - 4);
+            string modo = order.Substring(0, 3);
+            var parameter_order = Expression.Parameter(typeof(Shipper), "parameter");
+            var lambda_order = Expression.Lambda<Func<Shipper, Object>>(Expression.Property(parameter_order, columnaAordenar), parameter_order);
+            shippers = modo == "Asc" ? shippers.OrderBy(lambda_order) : shippers.OrderByDescending(lambda_order);
+
+            int pageSize = 10;
+            return View(await PaginatedList<Shipper>.CreateAsync(shippers.AsNoTracking(), pageNumber ?? 1, pageSize));
+
         }
 
         // GET: Shippers/Details/5

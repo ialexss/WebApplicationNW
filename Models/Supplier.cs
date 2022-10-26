@@ -1,10 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace WebApplicationNW.Models
 {
     public partial class Supplier
     {
+        public static List<PropertyInfo> Columns = CargarColumnas();
+        private static List<PropertyInfo> CargarColumnas()
+        {
+            List<PropertyInfo> c = new List<PropertyInfo>();
+            foreach (PropertyInfo column in typeof(Supplier).GetProperties())
+            {
+                string[] columnasAOcultar = new string[] { "SUPPLIERID" };
+                string tipo = column.PropertyType.Name;
+                if (!columnasAOcultar.Contains(column.Name.ToUpper()) && tipo != "ICollection`1")
+                    c.Add(column);
+            }
+            return c;
+        }
         public Supplier()
         {
             Products = new HashSet<Product>();

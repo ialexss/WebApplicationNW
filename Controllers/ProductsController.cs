@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -20,30 +21,49 @@ namespace WebApplicationNW.Controllers
         }
 
         // GET: Products
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString, string nameColumn, string currentFilter, int? pageNumber, string order = "Asc_ProductName")
         {
-            var applicationDbContext = _context.Products.Include(p => p.Category).Include(p => p.Supplier);
-            return View(await applicationDbContext.ToListAsync());
-        }
 
-        // GET: Products/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null || _context.Products == null)
+            if (searchString != null)
+                pageNumber = 1;
+            else
+                searchString = currentFilter;
+
+            ViewData["CurrentFilter"] = searchString;
+            ViewData["NameColumn"] = nameColumn;
+            ViewData["CurrentOrder"] = order;
+
+
+            var products = from m in _context.Products
+                            select m;
+
+            if (!String.IsNullOrEmpty(nameColumn) && !String.IsNullOrEmpty(searchString))
             {
-                return NotFound();
+                var paramenter_filter = Expression.Parameter(typeof(Product), "parameter");
+                var lambda_filter = Expression.Lambda<Func<Product, bool>>(
+                                  Expression.Call(
+                                      instance: Expression.Property(paramenter_filter, nameColumn),
+                                      method: typeof(string).GetMethod("Contains", new[] { typeof(string) }),
+                                      arguments: Expression.Constant(searchString)
+                                  ), paramenter_filter);
+                products = products.Where(lambda_filter);
             }
 
-            var product = await _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.Supplier)
-                .FirstOrDefaultAsync(m => m.ProductId == id);
-            if (product == null)
+            foreach (var column in Product.Columns)
             {
-                return NotFound();
+                ViewData["Order" + column.Name] = ((order == "Asc_" + column.Name) ? "Des_" : "Asc_") + column.Name;
             }
 
-            return View(product);
+
+            string columnaAordenar = order.Substring(4, order.Length - 4);
+            string modo = order.Substring(0, 3);
+            var parameter_order = Expression.Parameter(typeof(Product), "parameter");
+            var lambda_order = Expression.Lambda<Func<Product, Object>>(Expression.Property(parameter_order, columnaAordenar), parameter_order);
+            products = modo == "Asc" ? products.OrderBy(lambda_order) : products.OrderByDescending(lambda_order);
+
+            int pageSize = 10;
+            return View(await PaginatedList<Product>.CreateAsync(products.AsNoTracking(), pageNumber ?? 1, pageSize));
+
         }
 
         // GET: Products/Create

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -20,10 +21,51 @@ namespace WebApplicationNW.Controllers
         }
 
         // GET: Orders
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString, string nameColumn, string currentFilter, int? pageNumber, string order = "")
         {
-            var applicationDbContext = _context.Orders.Include(o => o.Customer).Include(o => o.Employee).Include(o => o.ShipViaNavigation);
-            return View(await applicationDbContext.ToListAsync());
+
+            if (searchString != null)
+                pageNumber = 1;
+            else
+                searchString = currentFilter;
+
+            ViewData["CurrentFilter"] = searchString;
+            ViewData["NameColumn"] = nameColumn;
+            ViewData["CurrentOrder"] = order;
+
+
+            var orders = from m in _context.Orders
+                            select m;
+
+            if (!String.IsNullOrEmpty(nameColumn) && !String.IsNullOrEmpty(searchString))
+            {
+                var paramenter_filter = Expression.Parameter(typeof(Order), "parameter");
+                var lambda_filter = Expression.Lambda<Func<Order, bool>>(
+                                  Expression.Call(
+                                      instance: Expression.Property(paramenter_filter, nameColumn),
+                                      method: typeof(string).GetMethod("Contains", new[] { typeof(string) }),
+                                      arguments: Expression.Constant(searchString)
+                                  ), paramenter_filter);
+                orders = orders.Where(lambda_filter);
+            }
+
+            foreach (var column in Order.Columns)
+            {
+                ViewData["Order" + column.Name] = ((order == "Asc_" + column.Name) ? "Des_" : "Asc_") + column.Name;
+            }
+
+            if (!String.IsNullOrEmpty(order))
+            {
+                string columnaAordenar = order.Substring(4, order.Length - 4);
+                string modo = order.Substring(0, 3);
+                var parameter_order = Expression.Parameter(typeof(Order), "parameter");
+                var lambda_order = Expression.Lambda<Func<Order, Object>>(Expression.Property(parameter_order, columnaAordenar), parameter_order);
+                orders = modo == "Asc" ? orders.OrderBy(lambda_order) : orders.OrderByDescending(lambda_order);
+            }
+
+            int pageSize = 10;
+            return View(await PaginatedList<Order>.CreateAsync(orders.AsNoTracking(), pageNumber ?? 1, pageSize));
+
         }
 
         // GET: Orders/Details/5
