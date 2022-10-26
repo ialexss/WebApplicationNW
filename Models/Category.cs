@@ -12,9 +12,13 @@ namespace WebApplicationNW.Models
             List<PropertyInfo> c = new List<PropertyInfo>();
             foreach (PropertyInfo column in typeof(Category).GetProperties())
             {
-                string nombre = column.Name.ToUpper();
+                //string nombre = column.Name.ToUpper();
+                //string tipo = column.PropertyType.Name;
+                //if (nombre != "CATEGORY" + "ID" && tipo!= "ICollection`1")
+                //    c.Add(column);
+                string[] columnasAOcultar = new string[] { "PICTURE","CATEGORYID" };
                 string tipo = column.PropertyType.Name;
-                if (nombre != "CATEGORY" + "ID" && tipo!= "ICollection`1")
+                if (!columnasAOcultar.Contains(column.Name.ToUpper()) && tipo != "ICollection`1")
                     c.Add(column);
             }
             return c;
