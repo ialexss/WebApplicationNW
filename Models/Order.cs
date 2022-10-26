@@ -12,7 +12,7 @@ namespace WebApplicationNW.Models
             List<PropertyInfo> c = new List<PropertyInfo>();
             foreach (PropertyInfo column in typeof(Order).GetProperties())
             {
-                string[] columnasAOcultar = new string[] { "ORDERID" };
+                string[] columnasAOcultar = new string[] { "ORDERID","CUSTOMER","EMPLOYEE", "SHIPVIANAVIGATION" };
                 string tipo = column.PropertyType.Name;
                 if (!columnasAOcultar.Contains(column.Name.ToUpper()) && tipo != "ICollection`1")
                     c.Add(column);
