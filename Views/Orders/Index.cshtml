@@ -2,13 +2,13 @@
 @model PaginatedList<WebApplicationNW.Models.Order>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Orders";
 }
 
-<h1>Index</h1>
+<h1>Orders</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" class="btn btn-warning">Create New</a>
 </p>
 
 <form class="" asp-controller="Customers" asp-action="Index">
