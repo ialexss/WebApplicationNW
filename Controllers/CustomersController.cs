@@ -75,7 +75,7 @@ namespace WebApplicationNW.Controllers
             return View(await PaginatedList<Customer>.CreateAsync(customers.AsNoTracking(), pageNumber ?? 1, pageSize));
 
         }
-        public async Task<IActionResult> VistaParaPDF(string searchString, string nameColum, string order, string currentFilter, int? pageNumber)
+        public async Task<IActionResult> VistaParaPDF()
         {
 
             var customer = from m in _context.Customers
